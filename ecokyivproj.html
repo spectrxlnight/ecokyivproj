@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Еко Київ — реальна карта районів</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <style>
+    * { box-sizing: border-box; }
+    :root{
+      --bg:#edf6f5;
+      --bg-soft:#f8fbfc;
+      --card:rgba(255,255,255,.86);
+      --line:rgba(22,34,39,.1);
+      --text:#162227;
+      --muted:#62757f;
+      --primary:#0f9d79;
+      --primary-2:#34d399;
+      --primary-3:#0b7f62;
+      --blue:#38bdf8;
+      --good-bg:#e8f9ee;
+      --good:#198754;
+      --mid-bg:#fff4d6;
+      --mid:#a97700;
+      --bad-bg:#ffe8e4;
+      --bad:#cf3b2b;
+      --shadow:0 20px 50px rgba(10,31,43,.08);
+      --radius-xl:30px;
+      --radius-lg:22px;
+      --radius-md:16px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body{
+      margin:0;
+      font-family: Inter, Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(15,157,121,.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56,189,248,.14), transparent 24%),
+        linear-gradient(180deg, #eef8f6 0%, #f7fbfc 42%, #edf3f6 100%);
+    }
+
+    .container{ width:min(1280px, calc(100% - 32px)); margin:0 auto; }
+    .header{
+      position:sticky; top:0; z-index:60;
+      background:rgba(255,255,255,.76);
+      backdrop-filter: blur(16px);
+      border-bottom:1px solid rgba(255,255,255,.55);
+    }
+    .nav{ min-height:78px; display:flex; justify-content:space-between; align-items:center; gap:16px; }
+    .brand{ display:flex; align-items:center; gap:14px; }
+    .logo{
+      width:50px; height:50px; display:grid; place-items:center; border-radius:18px;
+      background:linear-gradient(135deg, var(--primary), var(--primary-2)); color:#fff; font-size:24px; box-shadow:var(--shadow);
+    }
+    .brand h1{ margin:0; font-size:20px; line-height:1.1; }
+    .brand p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
+    .menu{ display:flex; flex-wrap:wrap; gap:10px; }
+    .menu a{ text-decoration:none; color:var(--text); font-weight:700; padding:10px 14px; border-radius:999px; transition:.2s; }
+    .menu a:hover{ background:rgba(15,157,121,.1); color:var(--primary-3); }
+
+    .glass, .card{
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.46);
+      box-shadow:var(--shadow);
+      border-radius:var(--radius-xl);
+    }
+
+    .hero{ padding:42px 0 28px; }
+    .hero-grid{ display:grid; grid-template-columns:1.1fr .9fr; gap:22px; }
+    .hero-card{ padding:34px; }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:999px;
+      background:rgba(15,157,121,.12); color:var(--primary-3); font-size:13px; font-weight:800;
+    }
+    .hero-card h2{ margin:18px 0 14px; font-size:clamp(34px, 5vw, 56px); line-height:1.02; letter-spacing:-.03em; }
+    .hero-card p{ margin:0; color:var(--muted); line-height:1.75; font-size:17px; }
+    .hero-actions{ margin-top:24px; display:flex; flex-wrap:wrap; gap:12px; }
+    .btn{
+      border:0; cursor:pointer; text-decoration:none; min-height:48px; padding:0 18px; border-radius:16px;
+      font:inherit; font-weight:800; display:inline-flex; align-items:center; justify-content:center; transition:.2s;
+    }
+    .btn-primary{ background:linear-gradient(135deg, var(--primary), var(--primary-2)); color:#fff; }
+    .btn-primary:hover{ transform:translateY(-1px); }
+    .btn-secondary{ background:#fff; color:var(--text); border:1px solid var(--line); }
+    .btn-secondary:hover{ background:var(--bg-soft); }
+
+    .hero-side{ display:grid; gap:18px; }
+    .summary{ padding:26px; }
+    .summary h3{ margin:0 0 16px; font-size:24px; }
+    .metric + .metric{ margin-top:16px; }
+    .metric-top{ display:flex; justify-content:space-between; gap:10px; margin-bottom:9px; font-size:15px; }
+    .metric-top span{ color:var(--muted); }
+    .progress{ width:100%; height:12px; border-radius:999px; background:rgba(20,33,39,.08); overflow:hidden; }
+    .progress > span{ display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg, var(--primary), var(--primary-2)); }
+    .status-note{
+      padding:16px 18px; border-radius:20px; background:var(--card); box-shadow:var(--shadow);
+      color:#39515b; font-weight:700; display:flex; align-items:center; gap:12px;
+    }
+    .dot{ width:10px; height:10px; border-radius:50%; background:#27c38a; box-shadow:0 0 0 8px rgba(39,195,138,.14); }
+
+    .section{ padding:30px 0; }
+    .section-head{ text-align:center; margin-bottom:22px; }
+    .eyebrow{
+      display:inline-block; padding:8px 14px; border-radius:999px;
+      background:rgba(56,189,248,.12); color:#0c84b7; font-size:13px; font-weight:800;
+    }
+    .section-head h3{ margin:14px 0 0; font-size:clamp(28px, 4vw, 42px); letter-spacing:-.03em; }
+
+    .features{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+    .feature{ padding:24px; }
+    .feature-icon{
+      width:54px; height:54px; border-radius:18px; display:grid; place-items:center; font-size:28px; margin-bottom:16px;
+      background:linear-gradient(135deg, rgba(15,157,121,.16), rgba(56,189,248,.12));
+    }
+    .feature h4{ margin:0 0 10px; font-size:22px; }
+    .feature p{ margin:0; color:var(--muted); line-height:1.7; }
+
+    .dashboard{ display:grid; grid-template-columns:340px 1fr; gap:20px; align-items:start; }
+    .panel{ padding:24px; }
+    .panel h4{ margin:0 0 8px; font-size:26px; }
+    .muted{ color:var(--muted); }
+    .label{ display:block; font-size:14px; font-weight:800; color:#425964; margin:14px 0 10px; }
+    .input{
+      width:100%; min-height:50px; padding:0 14px; border-radius:16px; border:1px solid rgba(20,33,39,.12);
+      font:inherit; outline:none; background:#fff;
+    }
+    .input:focus{ border-color:rgba(15,157,121,.55); box-shadow:0 0 0 4px rgba(15,157,121,.1); }
+    .chips{ display:flex; flex-wrap:wrap; gap:10px; }
+    .chip{
+      border:1px solid rgba(20,33,39,.08); background:#fff; border-radius:999px; min-height:40px; padding:0 14px;
+      font:inherit; font-weight:800; cursor:pointer; transition:.2s;
+    }
+    .chip.active{ background:rgba(15,157,121,.13); color:var(--primary-3); border-color:rgba(15,157,121,.18); }
+
+    .details{
+      margin-top:18px; border-radius:22px; padding:18px;
+      background:linear-gradient(180deg, rgba(15,157,121,.08), rgba(255,255,255,.85));
+      border:1px solid rgba(15,157,121,.12);
+    }
+    .details h5{ margin:0 0 12px; font-size:22px; }
+    .details-row{ display:flex; justify-content:space-between; gap:14px; padding:8px 0; border-bottom:1px dashed rgba(20,33,39,.08); }
+    .details-row span{ color:var(--muted); }
+    .status{
+      display:inline-flex; align-items:center; justify-content:center; min-height:30px; padding:0 12px;
+      border-radius:999px; font-size:13px; font-weight:900;
+    }
+    .status.good{ background:var(--good-bg); color:var(--good); }
+    .status.medium{ background:var(--mid-bg); color:var(--mid); }
+    .status.bad{ background:var(--bad-bg); color:var(--bad); }
+
+    .map-layout{ display:grid; grid-template-columns:1.1fr .9fr; gap:18px; }
+    .map-wrap{
+      border-radius:26px; padding:18px; background:linear-gradient(180deg, rgba(15,157,121,.05), rgba(56,189,248,.03));
+      border:1px solid rgba(15,157,121,.1);
+    }
+    .map-header{ display:flex; justify-content:space-between; gap:16px; align-items:center; margin-bottom:10px; }
+    .legend{ display:flex; flex-wrap:wrap; gap:10px; font-size:13px; color:var(--muted); }
+    .legend-item{ display:flex; align-items:center; gap:6px; }
+    .legend-swatch{ width:16px; height:10px; border-radius:999px; }
+    #realMap{
+      width:100%;
+      height:560px;
+      border-radius:22px;
+      overflow:hidden;
+      box-shadow: inset 0 0 0 1px rgba(15,157,121,.08);
+    }
+    .leaflet-popup-content-wrapper{ border-radius:16px; }
+    .map-note{ margin-top:10px; font-size:13px; color:var(--muted); }
+
+    .district-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; align-content:start; }
+    .district-card{
+      border:1px solid rgba(20,33,39,.08); background:#fff; border-radius:22px; padding:18px; text-align:left;
+      cursor:pointer; transition:.22s; box-shadow:0 10px 28px rgba(10,31,43,.05);
+    }
+    .district-card:hover{ transform:translateY(-3px); box-shadow:0 18px 32px rgba(10,31,43,.09); }
+    .district-card.selected{ outline:3px solid rgba(15,157,121,.22); background:rgba(255,255,255,.95); }
+    .district-card.hide{ display:none; }
+    .district-top{ display:flex; justify-content:space-between; gap:10px; margin-bottom:10px; }
+    .district-top h5{ margin:0; font-size:20px; }
+    .line{ margin:7px 0 0; color:#42545d; }
+    .hidden-line{ display:none; }
+
+    .chart-grid{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    .chart-card{ padding:24px; }
+    .chart-card h4{ margin:0 0 16px; font-size:24px; }
+    .bars{ display:grid; grid-template-columns:repeat(10,1fr); gap:12px; min-height:280px; align-items:end; }
+    .bar-item{ display:flex; flex-direction:column; align-items:center; gap:10px; height:100%; }
+    .bar-item small{ color:var(--muted); font-weight:800; }
+    .bar-track{
+      width:100%; flex:1; border-radius:18px; background:linear-gradient(180deg, rgba(15,157,121,.06), rgba(20,33,39,.02));
+      display:flex; align-items:end; padding:8px;
+    }
+    .bar-fill{ width:100%; border-radius:14px; background:linear-gradient(180deg, #18c492, #0f9d79); }
+
+    .profile{ display:grid; grid-template-columns:280px 1fr; gap:20px; }
+    .profile-menu{ padding:18px; }
+    .profile-menu button{
+      width:100%; min-height:50px; border:0; background:#fff; border-radius:16px; text-align:left; padding:0 16px;
+      font:inherit; font-weight:800; cursor:pointer; transition:.2s;
+    }
+    .profile-menu button + button{ margin-top:10px; }
+    .profile-menu button:hover{ background:var(--bg-soft); }
+    .profile-main{ padding:24px; }
+    .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .form-group{ display:grid; gap:8px; }
+    .form-group label{ font-size:14px; color:var(--muted); font-weight:800; }
+    .save-message{ margin-top:14px; font-weight:800; color:var(--primary-3); }
+    .alerts{ margin-top:22px; display:grid; gap:12px; }
+    .alert{ padding:16px 18px; border-radius:18px; font-weight:800; }
+    .alert.warn{ background:#fff6d9; color:#8d6a00; }
+    .alert.danger{ background:#ffeae6; color:#a63328; }
+
+    .footer{ margin-top:34px; padding:34px 0 48px; border-top:1px solid rgba(20,33,39,.06); background:rgba(255,255,255,.65); }
+    .footer-grid{ display:grid; grid-template-columns:1.2fr 1fr 1fr 1fr; gap:18px; }
+    .footer-title{ margin-bottom:10px; font-size:18px; font-weight:900; }
+    .footer p{ margin:0 0 8px; color:var(--muted); line-height:1.6; }
+    .small{ font-size:13px; color:var(--muted); margin-top:12px; line-height:1.6; }
+
+    @media (max-width: 1180px){ .dashboard,.map-layout,.profile,.footer-grid,.features,.chart-grid{ grid-template-columns:1fr; } }
+    @media (max-width: 1024px){ .hero-grid,.district-grid,.features,.form-grid{ grid-template-columns:1fr 1fr; } .menu{ display:none; } }
+    @media (max-width: 720px){
+      .hero-grid,.dashboard,.chart-grid,.profile,.footer-grid,.features,.district-grid,.form-grid,.map-layout{ grid-template-columns:1fr; }
+      .hero-card,.card,.glass{ border-radius:24px; }
+      .hero-card{ padding:26px; }
+      .bars{ min-height:220px; gap:10px; }
+      #realMap{ height:420px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container nav">
+      <div class="brand">
+        <div class="logo">🌿</div>
+        <div>
+          <h1>Еко Київ</h1>
+          <p>Реальна карта Києва з живими екоданими по районах</p>
+        </div>
+      </div>
+      <nav class="menu">
+        <a href="#hero">Головна</a>
+        <a href="#map">Карта</a>
+        <a href="#stats">Статистика</a>
+        <a href="#profile">Кабінет</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="hero">
+      <div class="container hero-grid">
+        <div class="glass hero-card">
+          
+          <h2>Мапа Києва з живими API</h2>
+          <p>
+            Живі екологічні дані Києва на інтерактивній карті
+          </p>
+          <div class="hero-actions">
+            <a href="#map" class="btn btn-primary">Відкрити карту</a>
+            <button class="btn btn-secondary" id="refreshAllBtn">Оновити всі райони</button>
+          </div>
+          <div class="small">Показані центри районів. </div>
+        </div>
+
+        <div class="hero-side">
+          <div class="card summary">
+            <h3>Стан міста зараз</h3>
+            <div class="metric">
+              <div class="metric-top"><span>Середній AQI</span><strong id="avgAqi">—</strong></div>
+              <div class="progress"><span id="avgAqiBar" style="width:0%"></span></div>
+            </div>
+            <div class="metric">
+              <div class="metric-top"><span>Середня температура</span><strong id="avgTemp">—</strong></div>
+              <div class="progress"><span id="avgTempBar" style="width:0%"></span></div>
+            </div>
+            <div class="metric">
+              <div class="metric-top"><span>Районів завантажено</span><strong id="loadedCount">0/10</strong></div>
+              <div class="progress"><span id="loadedBar" style="width:0%"></span></div>
+            </div>
+          </div>
+          <div class="status-note"><span class="dot"></span><span id="globalStatus">Готово до завантаження живих даних</span></div>
+        </div>
+      </div>
+    </section>
+
+
+
+    <section class="section" id="map">
+      <div class="container dashboard">
+        <aside class="card panel">
+          <h4>Керування картою</h4>
+          <p class="muted">Шукай район, перемикай показники та оновлюй дані.</p>
+
+          <label class="label">Пошук району</label>
+          <input id="searchInput" class="input" type="text" placeholder="Введіть назву району..." />
+
+          <label class="label">Показники</label>
+          <div class="chips">
+            <button class="chip active" data-filter="air">AQI</button>
+            <button class="chip active" data-filter="temp">Температура</button>
+            <button class="chip active" data-filter="wind">Вітер</button>
+            <button class="chip active" data-filter="pm">PM2.5</button>
+            <button class="chip" data-filter="noise">Шум</button>
+            <button class="chip" data-filter="green">Озеленення</button>
+          </div>
+
+          <div class="hero-actions" style="margin-top:18px;">
+            <button class="btn btn-primary" id="refreshSelectedBtn">Оновити вибраний район</button>
+            <button class="btn btn-secondary" id="downloadBtn">Скачати картку</button>
+          </div>
+
+          <div class="details" id="detailsBox"></div>
+          <div class="small" id="lastUpdated">Останнє оновлення: —</div>
+        </aside>
+
+        <div class="card panel">
+          <h4>Реальна карта районів Києва</h4>
+          <p class="muted">Натисни на точку району на карті або на картку справа.</p>
+
+          <div class="map-layout">
+            <div class="map-wrap">
+              <div class="map-header">
+                <strong>Карта Києва</strong>
+                <div class="legend">
+                  <div class="legend-item"><span class="legend-swatch" style="background:#caecd7"></span>Добрий</div>
+                  <div class="legend-item"><span class="legend-swatch" style="background:#f9e4a8"></span>Середній</div>
+                  <div class="legend-item"><span class="legend-swatch" style="background:#f7b7ad"></span>Поганий</div>
+                </div>
+              </div>
+              <div id="realMap" aria-label="Реальна карта Києва"></div>
+              <div class="map-note">Додано 10 районів, включно зі Святошинським і Подільським.</div>
+            </div>
+
+            <div>
+              <div class="district-grid" id="districtGrid"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="stats">
+      <div class="container">
+        <div class="section-head"><span class="eyebrow">Аналітика</span><h3>Статистика по районах</h3></div>
+        <div class="chart-grid">
+          <div class="card chart-card"><h4>AQI по районах</h4><div class="bars" id="aqiBars"></div></div>
+          <div class="card chart-card"><h4>Температура по районах</h4><div class="bars" id="tempBars"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="profile">
+      <div class="container profile">
+        <div class="card profile-menu">
+          <button>👤 Профіль</button>
+          <button>⚙️ Налаштування</button>
+          <button>🔔 Повідомлення</button>
+          <button>🚪 Вийти</button>
+        </div>
+        <div class="card profile-main">
+          <h4 style="margin:0 0 8px; font-size:28px;">Особистий кабінет</h4>
+          <p class="muted" style="margin:0 0 18px;">Тут дані реально зберігаються в браузері.</p>
+          <div class="form-grid">
+            <div class="form-group"><label>Ім'я</label><input id="nameInput" class="input" type="text" placeholder="Введіть ім'я"></div>
+            <div class="form-group"><label>Email</label><input id="emailInput" class="input" type="text" placeholder="Введіть email"></div>
+            <div class="form-group"><label>Місто</label><input id="cityInput" class="input" type="text" placeholder="Введіть місто"></div>
+            <div class="form-group" style="align-self:end;"><div class="hero-actions" style="margin-top:0;"><button class="btn btn-primary" id="saveProfileBtn">Зберегти</button><button class="btn btn-secondary" id="clearProfileBtn">Очистити</button></div></div>
+          </div>
+          <div class="save-message" id="saveMessage"></div>
+          <div class="alerts">
+            <div class="alert warn">⚠️ У деяких районах рівень шуму вищий за середній.</div>
+            <div class="alert danger">🚨 При поганому AQI рекомендується обмежити тривалі прогулянки.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div><div class="footer-title">Еко Київ</div><p>Навчальний демонстраційний сайт з живими даними по екології та погоді.</p></div>
+      <div><div class="footer-title">Розділи</div><p>Головна</p><p>Карта</p><p>Статистика</p></div>
+      <div><div class="footer-title">Дані</div><p>Air Quality API</p><p>Weather API</p><p>Open-Meteo</p></div>
+      <div><div class="footer-title">Технології</div><p>HTML</p><p>CSS</p><p>JavaScript</p></div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    const districts = [
+      { name: "Шевченківський", lat: 50.4501, lon: 30.5234, noise: 61, green: 29, hidden: false },
+      { name: "Печерський",     lat: 50.4333, lon: 30.5450, noise: 67, green: 24, hidden: false },
+      { name: "Оболонський",    lat: 50.5010, lon: 30.4982, noise: 54, green: 41, hidden: false },
+      { name: "Подільський",    lat: 50.4686, lon: 30.5152, noise: 58, green: 34, hidden: false },
+      { name: "Дарницький",     lat: 50.4072, lon: 30.6530, noise: 60, green: 37, hidden: false },
+      { name: "Деснянський",    lat: 50.5310, lon: 30.6100, noise: 56, green: 43, hidden: false },
+      { name: "Солом'янський",  lat: 50.4267, lon: 30.4519, noise: 64, green: 28, hidden: false },
+      { name: "Голосіївський",  lat: 50.3817, lon: 30.5167, noise: 49, green: 52, hidden: false },
+      { name: "Святошинський",  lat: 50.4587, lon: 30.3803, noise: 57, green: 46, hidden: false },
+      { name: "Дніпровський",   lat: 50.4558, lon: 30.5992, noise: 62, green: 31, hidden: false }
+    ];
+
+    const state = {
+      selectedDistrictName: "Шевченківський",
+      visibleLines: { air: true, temp: true, wind: true, pm: true, noise: false, green: false }
+    };
+
+    const map = L.map("realMap", { zoomControl: true }).setView([50.4501, 30.5234], 11);
+    const markers = {};
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors",
+      maxZoom: 19
+    }).addTo(map);
+
+    function getDistrictByName(name) {
+      return districts.find((district) => district.name === name) || districts[0];
+    }
+
+    function getSelectedDistrict() {
+      return getDistrictByName(state.selectedDistrictName);
+    }
+
+    function getStatusByAqi(aqi) {
+      if (aqi == null) return { text: "Немає даних", cls: "medium" };
+      if (aqi <= 20) return { text: "Добрий", cls: "good" };
+      if (aqi <= 60) return { text: "Середній", cls: "medium" };
+      return { text: "Поганий", cls: "bad" };
+    }
+
+    function getDistrictColor(district) {
+      if (district.hidden) return "#cfd8dc";
+      const status = getStatusByAqi(district.aqi);
+      if (status.cls === "good") return "#5cc98d";
+      if (status.cls === "bad") return "#e96a59";
+      return "#efc14d";
+    }
+
+    function shortName(name) {
+      if (name.startsWith("Шев")) return "Шевч.";
+      if (name.startsWith("Печ")) return "Печер.";
+      if (name.startsWith("Обол")) return "Обол.";
+      if (name.startsWith("Под")) return "Поділ.";
+      if (name.startsWith("Дар")) return "Дарн.";
+      if (name.startsWith("Дес")) return "Десн.";
+      if (name.startsWith("Сол")) return "Солом.";
+      if (name.startsWith("Гол")) return "Голос.";
+      if (name.startsWith("Свя")) return "Святош.";
+      if (name.startsWith("Дні")) return "Дніпр.";
+      return name.slice(0, 5) + ".";
+    }
+
+    async function fetchLiveDataForDistrict(district) {
+      const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${district.lat}&longitude=${district.lon}&current=temperature_2m,wind_speed_10m&timezone=auto`;
+      const airUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${district.lat}&longitude=${district.lon}&current=european_aqi,pm2_5&timezone=auto`;
+
+      const [weatherRes, airRes] = await Promise.all([fetch(weatherUrl), fetch(airUrl)]);
+      if (!weatherRes.ok) throw new Error(`Weather API ${district.name}`);
+      if (!airRes.ok) throw new Error(`Air API ${district.name}`);
+
+      const weather = await weatherRes.json();
+      const air = await airRes.json();
+
+      district.temp = weather?.current?.temperature_2m ?? null;
+      district.wind = weather?.current?.wind_speed_10m ?? null;
+      district.aqi = air?.current?.european_aqi ?? null;
+      district.pm25 = air?.current?.pm2_5 ?? null;
+      district.updatedAt = new Date().toLocaleString("uk-UA");
+    }
+
+    function popupHtml(district) {
+      const status = getStatusByAqi(district.aqi);
+      return `
+        <div style="min-width:180px;font-family:Arial,sans-serif;line-height:1.55;">
+          <strong>${district.name} район</strong><br>
+          AQI: ${district.aqi ?? "—"}<br>
+          Температура: ${district.temp ?? "—"}${district.temp != null ? "°C" : ""}<br>
+          Вітер: ${district.wind ?? "—"}${district.wind != null ? " км/год" : ""}<br>
+          PM2.5: ${district.pm25 ?? "—"}${district.pm25 != null ? " μg/m³" : ""}<br>
+          <span style="font-weight:700;">${status.text}</span>
+        </div>
+      `;
+    }
+
+    function ensureMarkers() {
+      districts.forEach((district) => {
+        if (markers[district.name]) return;
+        const marker = L.circleMarker([district.lat, district.lon], {
+          radius: district.name === state.selectedDistrictName ? 12 : 9,
+          color: "#ffffff",
+          weight: 3,
+          fillColor: getDistrictColor(district),
+          fillOpacity: district.hidden ? 0.35 : 0.95
+        }).addTo(map);
+
+        marker.on("click", () => selectDistrict(district.name, true));
+        marker.bindPopup(popupHtml(district));
+        markers[district.name] = marker;
+      });
+    }
+
+    function createDistrictCard(district) {
+      const status = getStatusByAqi(district.aqi);
+      const isSelected = district.name === state.selectedDistrictName;
+
+      return `
+        <button class="district-card ${district.hidden ? "hide" : ""} ${isSelected ? "selected" : ""}" data-name="${district.name}">
+          <div class="district-top">
+            <h5>${district.name}</h5>
+            <span class="status ${status.cls}">${status.text}</span>
+          </div>
+          <p class="line air ${state.visibleLines.air ? "" : "hidden-line"}">AQI: ${district.aqi ?? "—"}</p>
+          <p class="line temp ${state.visibleLines.temp ? "" : "hidden-line"}">Температура: ${district.temp ?? "—"}${district.temp != null ? "°C" : ""}</p>
+          <p class="line wind ${state.visibleLines.wind ? "" : "hidden-line"}">Вітер: ${district.wind ?? "—"}${district.wind != null ? " км/год" : ""}</p>
+          <p class="line pm ${state.visibleLines.pm ? "" : "hidden-line"}">PM2.5: ${district.pm25 ?? "—"}${district.pm25 != null ? " μg/m³" : ""}</p>
+          <p class="line noise ${state.visibleLines.noise ? "" : "hidden-line"}">Шум: ${district.noise} dB</p>
+          <p class="line green ${state.visibleLines.green ? "" : "hidden-line"}">Озеленення: ${district.green}%</p>
+        </button>
+      `;
+    }
+
+    function renderDistricts() {
+      const grid = document.getElementById("districtGrid");
+      grid.innerHTML = districts.map(createDistrictCard).join("");
+      [...grid.querySelectorAll(".district-card")].forEach((card) => {
+        card.addEventListener("click", () => selectDistrict(card.dataset.name, true));
+      });
+    }
+
+    function renderDetails() {
+      const district = getSelectedDistrict();
+      const status = getStatusByAqi(district.aqi);
+      const box = document.getElementById("detailsBox");
+      box.innerHTML = `
+        <h5>${district.name} район</h5>
+        <div class="details-row"><span>AQI</span><strong>${district.aqi ?? "—"}</strong></div>
+        <div class="details-row"><span>PM2.5</span><strong>${district.pm25 ?? "—"}${district.pm25 != null ? " μg/m³" : ""}</strong></div>
+        <div class="details-row"><span>Температура</span><strong>${district.temp ?? "—"}${district.temp != null ? "°C" : ""}</strong></div>
+        <div class="details-row"><span>Вітер</span><strong>${district.wind ?? "—"}${district.wind != null ? " км/год" : ""}</strong></div>
+        <div class="details-row"><span>Шум</span><strong>${district.noise} dB</strong></div>
+        <div class="details-row"><span>Озеленення</span><strong>${district.green}%</strong></div>
+        <div class="details-row"><span>Статус</span><strong class="status ${status.cls}">${status.text}</strong></div>
+      `;
+      document.getElementById("lastUpdated").textContent = "Останнє оновлення: " + (district.updatedAt || "—");
+    }
+
+    function renderSummary() {
+      const ready = districts.filter((district) => district.aqi != null && district.temp != null);
+      const avgAqi = ready.length ? Math.round(ready.reduce((sum, district) => sum + district.aqi, 0) / ready.length) : 0;
+      const avgTemp = ready.length ? Math.round(ready.reduce((sum, district) => sum + district.temp, 0) / ready.length) : 0;
+
+      document.getElementById("avgAqi").textContent = ready.length ? avgAqi : "—";
+      document.getElementById("avgTemp").textContent = ready.length ? `${avgTemp}°C` : "—";
+      document.getElementById("loadedCount").textContent = `${ready.length}/${districts.length}`;
+      document.getElementById("avgAqiBar").style.width = `${Math.min(avgAqi, 100)}%`;
+      document.getElementById("avgTempBar").style.width = `${Math.min(Math.max(avgTemp, 0) * 3, 100)}%`;
+      document.getElementById("loadedBar").style.width = `${ready.length / districts.length * 100}%`;
+    }
+
+    function renderBars() {
+      const aqiBars = document.getElementById("aqiBars");
+      const tempBars = document.getElementById("tempBars");
+
+      aqiBars.innerHTML = districts.map((district) => {
+        const value = district.aqi ?? 0;
+        return `
+          <div class="bar-item">
+            <small>${shortName(district.name)}</small>
+            <div class="bar-track"><div class="bar-fill" style="height:${Math.min(value, 100)}%"></div></div>
+          </div>
+        `;
+      }).join("");
+
+      tempBars.innerHTML = districts.map((district) => {
+        const value = district.temp ?? 0;
+        const normalized = Math.min(Math.max(value, 0) * 4, 100);
+        return `
+          <div class="bar-item">
+            <small>${shortName(district.name)}</small>
+            <div class="bar-track"><div class="bar-fill" style="height:${normalized}%"></div></div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderMap() {
+      ensureMarkers();
+      districts.forEach((district) => {
+        const marker = markers[district.name];
+        if (!marker) return;
+        marker.setStyle({
+          radius: district.name === state.selectedDistrictName ? 12 : 9,
+          fillColor: getDistrictColor(district),
+          fillOpacity: district.hidden ? 0.35 : 0.95,
+          opacity: district.hidden ? 0.5 : 1
+        });
+        marker.setPopupContent(popupHtml(district));
+      });
+    }
+
+    function renderAll() {
+      renderDistricts();
+      renderDetails();
+      renderSummary();
+      renderBars();
+      renderMap();
+    }
+
+    function setStatus(text) {
+      document.getElementById("globalStatus").textContent = text;
+    }
+
+    function selectDistrict(name, centerMap = false) {
+      state.selectedDistrictName = name;
+      renderAll();
+      const district = getSelectedDistrict();
+      if (centerMap) {
+        map.setView([district.lat, district.lon], 12, { animate: true });
+        markers[district.name]?.openPopup();
+      }
+    }
+
+    async function refreshSelectedDistrict() {
+      try {
+        setStatus("Оновлюю дані для вибраного району...");
+        await fetchLiveDataForDistrict(getSelectedDistrict());
+        renderAll();
+        markers[getSelectedDistrict().name]?.openPopup();
+        setStatus("Дані району оновлено");
+      } catch (error) {
+        console.error(error);
+        setStatus("Не вдалося оновити вибраний район");
+      }
+    }
+
+    async function refreshAllDistricts() {
+      setStatus("Завантажую живі дані для всіх районів...");
+      const results = await Promise.allSettled(districts.map((district) => fetchLiveDataForDistrict(district)));
+      const failedCount = results.filter((result) => result.status === "rejected").length;
+      renderAll();
+      if (failedCount === 0) setStatus("Усі райони успішно оновлено");
+      else setStatus(`Оновлено з частковими помилками: ${districts.length - failedCount}/${districts.length}`);
+    }
+
+    function downloadSelectedDistrict() {
+      const district = getSelectedDistrict();
+      const status = getStatusByAqi(district.aqi);
+      const text = [
+        `Район: ${district.name}`,
+        `AQI: ${district.aqi ?? "—"}`,
+        `PM2.5: ${district.pm25 ?? "—"}${district.pm25 != null ? " μg/m³" : ""}`,
+        `Температура: ${district.temp ?? "—"}${district.temp != null ? "°C" : ""}`,
+        `Вітер: ${district.wind ?? "—"}${district.wind != null ? " км/год" : ""}`,
+        `Шум: ${district.noise} dB`,
+        `Озеленення: ${district.green}%`,
+        `Статус: ${status.text}`,
+        `Оновлено: ${district.updatedAt || "—"}`
+      ].join("\n");
+
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${district.name}-eko-dani.txt`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function applySearch(value) {
+      const normalized = value.trim().toLowerCase();
+      districts.forEach((district) => {
+        district.hidden = normalized ? !district.name.toLowerCase().includes(normalized) : false;
+      });
+
+      const selectedDistrict = getSelectedDistrict();
+      if (selectedDistrict.hidden) {
+        const firstVisible = districts.find((district) => !district.hidden);
+        if (firstVisible) state.selectedDistrictName = firstVisible.name;
+      }
+      renderAll();
+    }
+
+    function saveProfile() {
+      const data = {
+        name: document.getElementById("nameInput").value,
+        email: document.getElementById("emailInput").value,
+        city: document.getElementById("cityInput").value
+      };
+      localStorage.setItem("ecoUser", JSON.stringify(data));
+      document.getElementById("saveMessage").textContent = "✅ Дані збережено";
+    }
+
+    function loadProfile() {
+      const saved = localStorage.getItem("ecoUser");
+      if (!saved) return;
+      const data = JSON.parse(saved);
+      document.getElementById("nameInput").value = data.name || "";
+      document.getElementById("emailInput").value = data.email || "";
+      document.getElementById("cityInput").value = data.city || "";
+    }
+
+    function clearProfile() {
+      localStorage.removeItem("ecoUser");
+      document.getElementById("nameInput").value = "";
+      document.getElementById("emailInput").value = "";
+      document.getElementById("cityInput").value = "";
+      document.getElementById("saveMessage").textContent = "🗑️ Дані очищено";
+    }
+
+    function bindEvents() {
+      document.getElementById("searchInput").addEventListener("input", (event) => applySearch(event.target.value));
+      document.getElementById("refreshSelectedBtn").addEventListener("click", refreshSelectedDistrict);
+      document.getElementById("refreshAllBtn").addEventListener("click", refreshAllDistricts);
+      document.getElementById("downloadBtn").addEventListener("click", downloadSelectedDistrict);
+      document.getElementById("saveProfileBtn").addEventListener("click", saveProfile);
+      document.getElementById("clearProfileBtn").addEventListener("click", clearProfile);
+
+      document.querySelectorAll(".chip").forEach((chip) => {
+        chip.addEventListener("click", () => {
+          const filter = chip.dataset.filter;
+          chip.classList.toggle("active");
+          state.visibleLines[filter] = chip.classList.contains("active");
+          renderDistricts();
+        });
+      });
+    }
+
+    bindEvents();
+    renderAll();
+    loadProfile();
+    setTimeout(() => map.invalidateSize(), 100);
+    refreshAllDistricts();
+  </script>
+</body>
+</html>
