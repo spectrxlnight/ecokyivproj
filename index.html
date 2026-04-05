@@ -12,27 +12,20 @@
   </svg>">
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
   <style>
     *{box-sizing:border-box}
+
     :root{
       --bg:#071116;
       --bg-2:#0d1b22;
       --bg-3:#12262f;
       --card:rgba(14,25,31,.72);
-      --card-solid:#112129;
       --text:#ecf8f7;
       --muted:#9bb7bd;
       --line:rgba(203,236,231,.08);
       --primary:#16c79a;
       --primary-2:#43e3b8;
-      --primary-3:#0e9f7c;
-      --blue:#50bfff;
-      --good:#42d392;
-      --good-bg:rgba(66,211,146,.14);
-      --mid:#f4c15d;
-      --mid-bg:rgba(244,193,93,.14);
-      --bad:#ff7a6b;
-      --bad-bg:rgba(255,122,107,.14);
       --shadow:0 18px 60px rgba(0,0,0,.32);
       --glow:0 0 0 1px rgba(67,227,184,.10), 0 16px 40px rgba(22,199,154,.10);
       --radius-xl:34px;
@@ -44,19 +37,16 @@
       --bg:#eef5f7;
       --bg-2:#f8fbfc;
       --bg-3:#eef5f7;
-      --card:rgba(255,255,255,.84);
-      --card-solid:#ffffff;
+      --card:rgba(255,255,255,.86);
       --text:#152126;
       --muted:#667b85;
       --line:rgba(18,33,39,.09);
       --shadow:0 24px 60px rgba(9,28,39,.09);
       --glow:0 0 0 1px rgba(67,227,184,.10), 0 16px 40px rgba(22,199,154,.08);
-      --good-bg:#e7f8ee;
-      --mid-bg:#fff4d8;
-      --bad-bg:#ffe8e4;
     }
 
     html{scroll-behavior:smooth}
+
     body{
       margin:0;
       color:var(--text);
@@ -98,7 +88,7 @@
       z-index:1;
     }
 
-    .glass,.card,.top-card{
+    .glass,.card,.top-card,.stats-card{
       background:var(--card);
       border:1px solid var(--line);
       box-shadow:var(--shadow);
@@ -115,9 +105,7 @@
       border-bottom:1px solid var(--line);
     }
 
-    body.light .header{
-      background:rgba(255,255,255,.4);
-    }
+    body.light .header{background:rgba(255,255,255,.45)}
 
     .nav{
       min-height:82px;
@@ -127,7 +115,7 @@
       gap:14px;
     }
 
-    .brand{display:flex; align-items:center; gap:14px}
+    .brand{display:flex;align-items:center;gap:14px}
 
     .logo{
       width:56px;
@@ -137,15 +125,15 @@
       place-items:center;
       font-size:26px;
       color:#fff;
-      background:linear-gradient(135deg, var(--primary), var(--primary-2));
+      background:linear-gradient(135deg,var(--primary),var(--primary-2));
       box-shadow:0 0 30px rgba(22,199,154,.28);
     }
 
-    .brand h1{margin:0; font-size:24px; letter-spacing:-.02em}
-    .brand p{margin:4px 0 0; color:var(--muted); font-size:13px}
+    .brand h1{margin:0;font-size:24px;letter-spacing:-.02em}
+    .brand p{margin:4px 0 0;color:var(--muted);font-size:13px}
 
-    .nav-right{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
-    .menu{display:flex; gap:10px; flex-wrap:wrap}
+    .nav-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .menu{display:flex;gap:10px;flex-wrap:wrap}
 
     .menu a{
       text-decoration:none;
@@ -158,7 +146,6 @@
 
     .menu a:hover{
       background:rgba(22,199,154,.12);
-      color:var(--text);
       transform:translateY(-1px);
     }
 
@@ -194,7 +181,7 @@
 
     .btn-primary{
       color:#04110c;
-      background:linear-gradient(135deg, var(--primary), var(--primary-2));
+      background:linear-gradient(135deg,var(--primary),var(--primary-2));
       box-shadow:0 10px 30px rgba(22,199,154,.26);
     }
 
@@ -216,7 +203,8 @@
     }
 
     .hero{padding:44px 0 30px}
-    .hero-grid{display:grid; grid-template-columns:1.06fr .94fr; gap:22px}
+    .hero-grid{display:grid;grid-template-columns:1.06fr .94fr;gap:22px}
+
     .hero-card{
       padding:38px;
       position:relative;
@@ -249,7 +237,7 @@
 
     .hero-card h2{
       margin:12px 0 14px;
-      font-size:clamp(38px, 5vw, 62px);
+      font-size:clamp(38px,5vw,62px);
       line-height:1.02;
       letter-spacing:-.05em;
     }
@@ -262,7 +250,7 @@
       max-width:56ch;
     }
 
-    .hero-actions{display:flex; gap:12px; flex-wrap:wrap; margin-top:24px}
+    .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
 
     .hero-mini{
       display:grid;
@@ -284,12 +272,12 @@
       box-shadow:var(--glow);
     }
 
-    .mini-stat span{display:block; color:var(--muted); font-size:13px; margin-bottom:8px}
+    .mini-stat span{display:block;color:var(--muted);font-size:13px;margin-bottom:8px}
     .mini-stat strong{font-size:24px}
 
-    .hero-side{display:grid; gap:18px}
+    .hero-side{display:grid;gap:18px}
     .summary{padding:26px}
-    .summary h3{margin:0 0 16px; font-size:24px}
+    .summary h3{margin:0 0 16px;font-size:24px}
 
     .metric + .metric{margin-top:16px}
     .metric-top{
@@ -314,9 +302,9 @@
       display:block;
       height:100%;
       border-radius:inherit;
-      background:linear-gradient(90deg, var(--primary), var(--primary-2));
+      background:linear-gradient(90deg,var(--primary),var(--primary-2));
       box-shadow:0 0 20px rgba(22,199,154,.4);
-      transition:width .45s ease;
+      transition:width .45s ease, background .25s ease;
     }
 
     .status-note{
@@ -362,11 +350,11 @@
 
     .top-card:hover{
       transform:translateY(-6px);
-      box-shadow:var(--glow), var(--shadow);
+      box-shadow:var(--glow),var(--shadow);
     }
 
-    .top-card .label{margin:0 0 8px; color:var(--muted); font-size:13px}
-    .top-card strong{font-size:30px; display:block}
+    .top-card .label{margin:0 0 8px;color:var(--muted);font-size:13px}
+    .top-card strong{font-size:30px;display:block}
     .top-card small{color:var(--muted)}
 
     .dashboard{
@@ -381,11 +369,8 @@
       transition:.25s ease;
     }
 
-    .panel:hover{
-      box-shadow:var(--glow), var(--shadow);
-    }
-
-    .panel h4{margin:0 0 8px; font-size:26px}
+    .panel:hover{box-shadow:var(--glow),var(--shadow)}
+    .panel h4{margin:0 0 8px;font-size:26px}
     .muted{color:var(--muted)}
 
     .label{
@@ -416,7 +401,7 @@
       box-shadow:0 0 0 4px rgba(67,227,184,.10);
     }
 
-    .chips{display:flex; gap:10px; flex-wrap:wrap}
+    .chips{display:flex;gap:10px;flex-wrap:wrap}
 
     .chip{
       min-height:40px;
@@ -438,7 +423,6 @@
 
     .chip.active{
       background:rgba(22,199,154,.14);
-      color:var(--text);
       border-color:rgba(67,227,184,.24);
     }
 
@@ -450,7 +434,7 @@
       border:1px solid rgba(67,227,184,.14);
     }
 
-    .details h5{margin:0 0 12px; font-size:22px}
+    .details h5{margin:0 0 12px;font-size:22px}
 
     .details-row{
       display:flex;
@@ -473,10 +457,6 @@
       font-weight:900;
     }
 
-    .status.good{background:var(--good-bg); color:var(--good)}
-    .status.medium{background:var(--mid-bg); color:var(--mid)}
-    .status.bad{background:var(--bad-bg); color:var(--bad)}
-
     .favourite{
       margin-top:14px;
       display:flex;
@@ -489,7 +469,7 @@
       border:1px solid var(--line);
     }
 
-    .map-layout{display:grid; grid-template-columns:1.08fr .92fr; gap:18px}
+    .map-layout{display:grid;grid-template-columns:1.08fr .92fr;gap:18px}
 
     .map-wrap{
       border-radius:28px;
@@ -506,9 +486,9 @@
       margin-bottom:12px;
     }
 
-    .legend{display:flex; gap:10px; flex-wrap:wrap; color:var(--muted); font-size:13px}
-    .legend-item{display:flex; align-items:center; gap:6px}
-    .legend-swatch{width:16px; height:10px; border-radius:999px}
+    .legend{display:flex;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:13px}
+    .legend-item{display:flex;align-items:center;gap:6px}
+    .legend-swatch{width:16px;height:10px;border-radius:999px}
 
     #realMap{
       width:100%;
@@ -539,21 +519,21 @@
 
     .district-card:hover{
       transform:translateY(-5px) scale(1.01);
-      box-shadow:var(--glow), 0 20px 34px rgba(0,0,0,.20);
+      box-shadow:var(--glow),0 20px 34px rgba(0,0,0,.20);
     }
 
     .district-card.selected{
       outline:2px solid rgba(67,227,184,.34);
-      box-shadow:var(--glow), 0 20px 34px rgba(0,0,0,.20);
+      box-shadow:var(--glow),0 20px 34px rgba(0,0,0,.20);
     }
 
     .district-card.hide{display:none}
-    .district-top{display:flex; justify-content:space-between; gap:10px; margin-bottom:10px}
-    .district-top h5{margin:0; font-size:20px}
-    .line{margin:7px 0 0; color:var(--muted)}
+    .district-top{display:flex;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .district-top h5{margin:0;font-size:20px}
+    .line{margin:7px 0 0;color:var(--muted)}
     .hidden-line{display:none}
 
-    .section-head{text-align:center; margin-bottom:20px}
+    .section-head{text-align:center;margin-bottom:18px}
     .eyebrow{
       display:inline-block;
       padding:8px 14px;
@@ -566,18 +546,120 @@
 
     .section-head h3{
       margin:14px 0 0;
-      font-size:clamp(28px, 4vw, 42px);
+      font-size:clamp(28px,4vw,42px);
       letter-spacing:-.03em;
+    }
+
+    .stats-shell{
+      padding:26px;
+      border-radius:32px;
+      background:
+        linear-gradient(180deg, rgba(22,199,154,.08), rgba(255,255,255,.02)),
+        var(--card);
+      border:1px solid rgba(67,227,184,.12);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(18px);
+    }
+
+    .stats-intro{
+      display:flex;
+      justify-content:space-between;
+      align-items:end;
+      gap:16px;
+      margin-bottom:18px;
+      flex-wrap:wrap;
+    }
+
+    .stats-intro p{
+      margin:6px 0 0;
+      color:var(--muted);
+      max-width:58ch;
+      line-height:1.7;
+    }
+
+    .stats-mini{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:14px;
+      margin:16px 0 20px;
+    }
+
+    .stats-card{
+      padding:18px;
+      border-radius:24px;
+      position:relative;
+      overflow:hidden;
+      transition:.25s ease;
+    }
+
+    .stats-card::after{
+      content:"";
+      position:absolute;
+      right:-30px;
+      bottom:-30px;
+      width:90px;
+      height:90px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(67,227,184,.16), transparent 70%);
+      pointer-events:none;
+    }
+
+    .stats-card:hover{
+      transform:translateY(-4px);
+      box-shadow:var(--glow),var(--shadow);
+    }
+
+    .stats-card .kicker{
+      font-size:12px;
+      font-weight:800;
+      color:var(--muted);
+      letter-spacing:.03em;
+      text-transform:uppercase;
+    }
+
+    .stats-card strong{
+      display:block;
+      margin-top:10px;
+      font-size:28px;
+    }
+
+    .stats-card small{
+      display:block;
+      margin-top:6px;
+      color:var(--muted);
+      line-height:1.5;
     }
 
     .chart-grid{
       display:grid;
       grid-template-columns:1fr 1fr;
-      gap:20px;
+      gap:18px;
+      margin-top:8px;
     }
 
-    .chart-card{padding:24px}
-    .chart-card h4{margin:0 0 16px; font-size:24px}
+    .chart-card{
+      padding:22px;
+      border-radius:26px;
+      transition:.25s ease;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .chart-card:hover{
+      transform:translateY(-3px);
+      box-shadow:var(--glow),var(--shadow);
+    }
+
+    .chart-card h4{
+      margin:0 0 6px;
+      font-size:22px;
+    }
+
+    .chart-sub{
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:14px;
+    }
 
     .bars{
       display:grid;
@@ -599,6 +681,7 @@
       font-weight:800;
       color:var(--muted);
       text-align:center;
+      font-size:11px;
     }
 
     .bar-track{
@@ -609,12 +692,12 @@
       background:linear-gradient(180deg, rgba(22,199,154,.06), rgba(255,255,255,.02));
       display:flex;
       align-items:end;
+      border:1px solid rgba(255,255,255,.03);
     }
 
     .bar-fill{
       width:100%;
       border-radius:14px;
-      background:linear-gradient(180deg, #2ae2ad, #14b98f);
       position:relative;
       box-shadow:0 10px 18px rgba(22,199,154,.18);
       animation:barGrow .8s ease;
@@ -622,8 +705,8 @@
     }
 
     @keyframes barGrow{
-      from{transform:scaleY(.08); opacity:.3}
-      to{transform:scaleY(1); opacity:1}
+      from{transform:scaleY(.08);opacity:.3}
+      to{transform:scaleY(1);opacity:1}
     }
 
     .bar-fill span{
@@ -667,7 +750,7 @@
       gap:18px;
     }
 
-    .footer-title{font-size:18px; font-weight:900; margin-bottom:10px}
+    .footer-title{font-size:18px;font-weight:900;margin-bottom:10px}
 
     .footer p,.footer a{
       margin:0 0 8px;
@@ -683,7 +766,7 @@
       transform:translateX(4px);
     }
 
-    .small{font-size:13px; color:var(--muted); line-height:1.6}
+    .small{font-size:13px;color:var(--muted);line-height:1.6}
 
     .reveal{
       opacity:0;
@@ -697,7 +780,7 @@
     }
 
     @media (max-width:1180px){
-      .dashboard,.map-layout,.chart-grid,.footer-grid,.top-cards{grid-template-columns:1fr}
+      .dashboard,.map-layout,.chart-grid,.footer-grid,.top-cards,.stats-mini{grid-template-columns:1fr}
     }
 
     @media (max-width:1024px){
@@ -707,11 +790,12 @@
     }
 
     @media (max-width:720px){
-      .hero-grid,.dashboard,.map-layout,.district-grid,.chart-grid,.footer-grid,.top-cards{grid-template-columns:1fr}
-      .hero-card,.card,.glass,.top-card{border-radius:24px}
+      .hero-grid,.dashboard,.map-layout,.district-grid,.chart-grid,.footer-grid,.top-cards,.stats-mini{grid-template-columns:1fr}
+      .hero-card,.card,.glass,.top-card,.stats-card{border-radius:24px}
       .hero-card{padding:24px}
+      .stats-shell{padding:18px;border-radius:24px}
       #realMap{height:420px}
-      .bars{min-height:220px; gap:10px}
+      .bars{min-height:220px;gap:10px}
       .brand p{display:none}
     }
   </style>
@@ -875,9 +959,9 @@
               <div class="map-header">
                 <strong>Карта Києва</strong>
                 <div class="legend">
-                  <div class="legend-item"><span class="legend-swatch" style="background:#caecd7"></span>Добрий</div>
-                  <div class="legend-item"><span class="legend-swatch" style="background:#f9e4a8"></span>Середній</div>
-                  <div class="legend-item"><span class="legend-swatch" style="background:#f7b7ad"></span>Поганий</div>
+                  <div class="legend-item"><span class="legend-swatch" style="background:#42d392"></span>Добрий</div>
+                  <div class="legend-item"><span class="legend-swatch" style="background:#f4c15d"></span>Середній</div>
+                  <div class="legend-item"><span class="legend-swatch" style="background:#ff7a6b"></span>Поганий</div>
                 </div>
               </div>
               <div id="realMap" aria-label="Реальна карта Києва"></div>
@@ -892,53 +976,65 @@
 
     <section class="section" id="stats">
       <div class="container">
-        <div class="section-head">
-          <span class="eyebrow">Аналітика</span>
-          <h3>Статистика по районах</h3>
-        </div>
-
-        <div class="top-cards" style="margin-bottom:20px;">
-          <div class="top-card">
-            <p class="label">Середній шум</p>
-            <strong id="avgNoise">—</strong>
-            <small>Середній рівень по районах</small>
-          </div>
-          <div class="top-card">
-            <p class="label">Середнє озеленення</p>
-            <strong id="avgGreen">—</strong>
-            <small>Середній відсоток зелених зон</small>
-          </div>
-          <div class="top-card">
-            <p class="label">Найгірший AQI</p>
-            <strong id="worstDistrict">—</strong>
-            <small id="worstDistrictMeta">Очікування даних</small>
-          </div>
-          <div class="top-card">
-            <p class="label">Найвищий PM2.5</p>
-            <strong id="worstPmDistrict">—</strong>
-            <small id="worstPmDistrictMeta">Очікування даних</small>
-          </div>
-        </div>
-
-        <div class="chart-grid">
-          <div class="card chart-card">
-            <h4>AQI по районах</h4>
-            <div class="bars" id="aqiBars"></div>
+        <div class="stats-shell">
+          <div class="stats-intro">
+            <div>
+              <span class="eyebrow">Аналітика</span>
+              <h3 style="margin:14px 0 0;font-size:clamp(28px,4vw,42px);letter-spacing:-.03em;">Статистика по районах</h3>
+              <p>Порівнюй середні показники, знаходь проблемні райони й дивись графіки по повітрю, температурі, PM2.5 та шуму.</p>
+            </div>
           </div>
 
-          <div class="card chart-card">
-            <h4>Температура по районах</h4>
-            <div class="bars" id="tempBars"></div>
+          <div class="stats-mini">
+            <div class="stats-card">
+              <div class="kicker">Середній шум</div>
+              <strong id="avgNoise">—</strong>
+              <small>Середній рівень по районах</small>
+            </div>
+
+            <div class="stats-card">
+              <div class="kicker">Середнє озеленення</div>
+              <strong id="avgGreen">—</strong>
+              <small>Середній відсоток зелених зон</small>
+            </div>
+
+            <div class="stats-card">
+              <div class="kicker">Найгірший AQI</div>
+              <strong id="worstDistrict">—</strong>
+              <small id="worstDistrictMeta">Очікування даних</small>
+            </div>
+
+            <div class="stats-card">
+              <div class="kicker">Найвищий PM2.5</div>
+              <strong id="worstPmDistrict">—</strong>
+              <small id="worstPmDistrictMeta">Очікування даних</small>
+            </div>
           </div>
 
-          <div class="card chart-card">
-            <h4>PM2.5 по районах</h4>
-            <div class="bars" id="pmBars"></div>
-          </div>
+          <div class="chart-grid">
+            <div class="card chart-card">
+              <h4>AQI по районах</h4>
+              <div class="chart-sub">Нижче AQI — краща якість повітря</div>
+              <div class="bars" id="aqiBars"></div>
+            </div>
 
-          <div class="card chart-card">
-            <h4>Шум по районах</h4>
-            <div class="bars" id="noiseBars"></div>
+            <div class="card chart-card">
+              <h4>Температура по районах</h4>
+              <div class="chart-sub">Поточна температура за живими даними</div>
+              <div class="bars" id="tempBars"></div>
+            </div>
+
+            <div class="card chart-card">
+              <h4>PM2.5 по районах</h4>
+              <div class="chart-sub">Вміст дрібнодисперсного пилу</div>
+              <div class="bars" id="pmBars"></div>
+            </div>
+
+            <div class="card chart-card">
+              <h4>Шум по районах</h4>
+              <div class="chart-sub">Орієнтовний рівень шумового навантаження</div>
+              <div class="bars" id="noiseBars"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -1013,6 +1109,39 @@
       return getDistrictByName(state.selectedDistrictName);
     }
 
+    function clamp(value, min, max){
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function mixColors(hex1, hex2, factor){
+      const c1 = hex1.replace("#","").match(/.{1,2}/g).map(x => parseInt(x,16));
+      const c2 = hex2.replace("#","").match(/.{1,2}/g).map(x => parseInt(x,16));
+      const mixed = c1.map((v,i) => Math.round(v + (c2[i] - v) * factor));
+      return "#" + mixed.map(v => v.toString(16).padStart(2,"0")).join("");
+    }
+
+    function getAqiDynamicColor(aqi){
+      if (aqi == null) return "#9aa7ad";
+
+      const green = "#42d392";
+      const yellow = "#f4c15d";
+      const red = "#ff7a6b";
+      const value = clamp(aqi, 0, 100);
+
+      if (value <= 50){
+        return mixColors(green, yellow, value / 50);
+      }
+      return mixColors(yellow, red, (value - 50) / 50);
+    }
+
+    function getAqiTone(aqi){
+      if (aqi == null){
+        return { bg:"rgba(154,167,173,.16)", border:"#9aa7ad", text:"#9aa7ad" };
+      }
+      const color = getAqiDynamicColor(aqi);
+      return { bg: color + "22", border: color, text: color };
+    }
+
     function getStatusByAqi(aqi){
       if (aqi == null) return { text: "Немає даних", cls: "medium" };
       if (aqi <= 20) return { text: "Добрий", cls: "good" };
@@ -1022,10 +1151,7 @@
 
     function getDistrictColor(district){
       if (district.hidden) return "#cfd8dc";
-      const status = getStatusByAqi(district.aqi);
-      if (status.cls === "good") return "#5cc98d";
-      if (status.cls === "bad") return "#e96a59";
-      return "#efc14d";
+      return getAqiDynamicColor(district.aqi);
     }
 
     function shortName(name){
@@ -1039,7 +1165,7 @@
       if (name.startsWith("Гол")) return "Голос.";
       if (name.startsWith("Свя")) return "Святош.";
       if (name.startsWith("Дні")) return "Дніпр.";
-      return name.slice(0, 5) + ".";
+      return name.slice(0,5) + ".";
     }
 
     async function fetchLiveDataForDistrict(district){
@@ -1062,6 +1188,7 @@
 
     function popupHtml(district){
       const status = getStatusByAqi(district.aqi);
+      const tone = getAqiTone(district.aqi);
       return `
         <div style="min-width:190px;font-family:Arial,sans-serif;line-height:1.55;">
           <strong>${district.name} район</strong><br>
@@ -1069,7 +1196,7 @@
           Температура: ${district.temp ?? "—"}${district.temp != null ? "°C" : ""}<br>
           Вітер: ${district.wind ?? "—"}${district.wind != null ? " км/год" : ""}<br>
           PM2.5: ${district.pm25 ?? "—"}${district.pm25 != null ? " μg/m³" : ""}<br>
-          <span style="font-weight:700;">${status.text}</span>
+          <span style="font-weight:700;color:${tone.text};">${status.text}</span>
         </div>
       `;
     }
@@ -1111,14 +1238,13 @@
         case "noise-desc":
           list.sort((a,b) => b.noise - a.noise);
           break;
-        default:
-          break;
       }
       return list;
     }
 
     function createDistrictCard(district){
       const status = getStatusByAqi(district.aqi);
+      const tone = getAqiTone(district.aqi);
       const isSelected = district.name === state.selectedDistrictName;
       const favourite = localStorage.getItem("ecoFavouriteDistrict") === district.name ? " ⭐" : "";
 
@@ -1126,7 +1252,7 @@
         <button class="district-card ${district.hidden ? "hide" : ""} ${isSelected ? "selected" : ""}" data-name="${district.name}">
           <div class="district-top">
             <h5>${district.name}${favourite}</h5>
-            <span class="status ${status.cls}">${status.text}</span>
+            <span class="status" style="background:${tone.bg}; color:${tone.text}; border:1px solid ${tone.border};">${status.text}</span>
           </div>
           <p class="line air ${state.visibleLines.air ? "" : "hidden-line"}">AQI: ${district.aqi ?? "—"}</p>
           <p class="line temp ${state.visibleLines.temp ? "" : "hidden-line"}">Температура: ${district.temp ?? "—"}${district.temp != null ? "°C" : ""}</p>
@@ -1149,8 +1275,9 @@
     function renderDetails(){
       const district = getSelectedDistrict();
       const status = getStatusByAqi(district.aqi);
-      const box = document.getElementById("detailsBox");
-      box.innerHTML = `
+      const tone = getAqiTone(district.aqi);
+
+      document.getElementById("detailsBox").innerHTML = `
         <h5>${district.name} район</h5>
         <div class="details-row"><span>AQI</span><strong>${district.aqi ?? "—"}</strong></div>
         <div class="details-row"><span>PM2.5</span><strong>${district.pm25 ?? "—"}${district.pm25 != null ? " μg/m³" : ""}</strong></div>
@@ -1158,8 +1285,9 @@
         <div class="details-row"><span>Вітер</span><strong>${district.wind ?? "—"}${district.wind != null ? " км/год" : ""}</strong></div>
         <div class="details-row"><span>Шум</span><strong>${district.noise} dB</strong></div>
         <div class="details-row"><span>Озеленення</span><strong>${district.green}%</strong></div>
-        <div class="details-row"><span>Статус</span><strong class="status ${status.cls}">${status.text}</strong></div>
+        <div class="details-row"><span>Статус</span><strong class="status" style="background:${tone.bg}; color:${tone.text}; border:1px solid ${tone.border};">${status.text}</strong></div>
       `;
+
       document.getElementById("lastUpdated").textContent = "Останнє оновлення: " + (district.updatedAt || "—");
     }
 
@@ -1173,15 +1301,20 @@
       document.getElementById("avgTemp").textContent = ready.length ? `${avgTemp}°C` : "—";
       document.getElementById("avgPm").textContent = ready.length ? `${avgPm}` : "—";
       document.getElementById("loadedCount").textContent = `${ready.length}/${districts.length}`;
+
       document.getElementById("avgAqiBar").style.width = `${Math.min(avgAqi, 100)}%`;
       document.getElementById("avgTempBar").style.width = `${Math.min(Math.max(avgTemp, 0) * 3, 100)}%`;
       document.getElementById("avgPmBar").style.width = `${Math.min(avgPm * 2, 100)}%`;
       document.getElementById("loadedBar").style.width = `${ready.length / districts.length * 100}%`;
 
+      document.getElementById("avgAqiBar").style.background = `linear-gradient(90deg, ${mixColors("#42d392","#f4c15d",0.35)}, ${getAqiDynamicColor(avgAqi)})`;
+      document.getElementById("avgTempBar").style.background = `linear-gradient(90deg, #50bfff, #43e3b8)`;
+      document.getElementById("avgPmBar").style.background = `linear-gradient(90deg, ${mixColors("#42d392","#f4c15d",0.45)}, ${getAqiDynamicColor(avgPm * 2)})`;
+
       const best = [...districts].filter(d => d.aqi != null).sort((a,b) => a.aqi - b.aqi)[0];
-      const worst = [...districts].filter(d => d.aqi != null).sort((a,b) => b.aqi - a.aqi)[0];
       const loud = [...districts].sort((a,b) => b.noise - a.noise)[0];
       const green = [...districts].sort((a,b) => b.green - a.green)[0];
+      const worst = [...districts].filter(d => d.aqi != null).sort((a,b) => b.aqi - a.aqi)[0];
       const worstPm = [...districts].filter(d => d.pm25 != null).sort((a,b) => b.pm25 - a.pm25)[0];
 
       const avgNoise = Math.round(districts.reduce((s,d) => s + d.noise, 0) / districts.length);
@@ -1214,11 +1347,13 @@
 
       aqiBars.innerHTML = districts.map(district => {
         const value = district.aqi ?? 0;
+        const color = getAqiDynamicColor(value);
+        const light = mixColors(color, "#ffffff", 0.18);
         return `
           <div class="bar-item">
             <small>${shortName(district.name)}</small>
             <div class="bar-track">
-              <div class="bar-fill" style="height:${Math.min(value, 100)}%">
+              <div class="bar-fill" style="height:${Math.min(value,100)}%; background:linear-gradient(180deg, ${light}, ${color});">
                 <span>${district.aqi ?? "—"}</span>
               </div>
             </div>
@@ -1228,12 +1363,12 @@
 
       tempBars.innerHTML = districts.map(district => {
         const value = district.temp ?? 0;
-        const normalized = Math.min(Math.max(value, 0) * 4, 100);
+        const normalized = Math.min(Math.max(value,0) * 4, 100);
         return `
           <div class="bar-item">
             <small>${shortName(district.name)}</small>
             <div class="bar-track">
-              <div class="bar-fill" style="height:${normalized}%">
+              <div class="bar-fill" style="height:${normalized}%; background:linear-gradient(180deg, #7dd8ff, #43e3b8);">
                 <span>${district.temp ?? "—"}${district.temp != null ? "°" : ""}</span>
               </div>
             </div>
@@ -1244,11 +1379,13 @@
       pmBars.innerHTML = districts.map(district => {
         const value = district.pm25 ?? 0;
         const normalized = Math.min(value * 4, 100);
+        const color = getAqiDynamicColor(normalized);
+        const light = mixColors(color, "#ffffff", 0.18);
         return `
           <div class="bar-item">
             <small>${shortName(district.name)}</small>
             <div class="bar-track">
-              <div class="bar-fill" style="height:${normalized}%">
+              <div class="bar-fill" style="height:${normalized}%; background:linear-gradient(180deg, ${light}, ${color});">
                 <span>${district.pm25 ?? "—"}</span>
               </div>
             </div>
@@ -1257,13 +1394,14 @@
       }).join("");
 
       noiseBars.innerHTML = districts.map(district => {
-        const value = district.noise ?? 0;
-        const normalized = Math.min(value, 100);
+        const normalized = Math.min(district.noise, 100);
+        const color = getAqiDynamicColor(normalized);
+        const light = mixColors(color, "#ffffff", 0.18);
         return `
           <div class="bar-item">
             <small>${shortName(district.name)}</small>
             <div class="bar-track">
-              <div class="bar-fill" style="height:${normalized}%">
+              <div class="bar-fill" style="height:${normalized}%; background:linear-gradient(180deg, ${light}, ${color});">
                 <span>${district.noise}</span>
               </div>
             </div>
@@ -1304,7 +1442,7 @@
       renderAll();
       const district = getSelectedDistrict();
       if (centerMap){
-        map.setView([district.lat, district.lon], 12, { animate: true });
+        map.setView([district.lat, district.lon], 12, { animate:true });
         markers[district.name]?.openPopup();
       }
     }
@@ -1414,7 +1552,7 @@
       });
     }
 
-    document.querySelectorAll(".hero-card,.summary,.status-note,.top-card,.panel,.chart-card,.footer .container > div").forEach(el=>{
+    document.querySelectorAll(".hero-card,.summary,.status-note,.top-card,.panel,.stats-card,.chart-card,.footer .container > div").forEach(el=>{
       el.classList.add("reveal");
     });
 
