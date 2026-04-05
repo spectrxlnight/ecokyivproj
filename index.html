@@ -4,6 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Еко Київ — сучасний дашборд</title>
+
+  <link rel="icon" href="data:image/svg+xml,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+    <rect width='100' height='100' rx='20' fill='%2300715c'/>
+    <text x='50%' y='55%' font-size='60' text-anchor='middle' fill='white'>🌿</text>
+  </svg>">
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
   <style>
     *{box-sizing:border-box}
@@ -563,7 +570,12 @@
       letter-spacing:-.03em;
     }
 
-    .chart-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px}
+    .chart-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:20px;
+    }
+
     .chart-card{padding:24px}
     .chart-card h4{margin:0 0 16px; font-size:24px}
 
@@ -884,14 +896,49 @@
           <span class="eyebrow">Аналітика</span>
           <h3>Статистика по районах</h3>
         </div>
+
+        <div class="top-cards" style="margin-bottom:20px;">
+          <div class="top-card">
+            <p class="label">Середній шум</p>
+            <strong id="avgNoise">—</strong>
+            <small>Середній рівень по районах</small>
+          </div>
+          <div class="top-card">
+            <p class="label">Середнє озеленення</p>
+            <strong id="avgGreen">—</strong>
+            <small>Середній відсоток зелених зон</small>
+          </div>
+          <div class="top-card">
+            <p class="label">Найгірший AQI</p>
+            <strong id="worstDistrict">—</strong>
+            <small id="worstDistrictMeta">Очікування даних</small>
+          </div>
+          <div class="top-card">
+            <p class="label">Найвищий PM2.5</p>
+            <strong id="worstPmDistrict">—</strong>
+            <small id="worstPmDistrictMeta">Очікування даних</small>
+          </div>
+        </div>
+
         <div class="chart-grid">
           <div class="card chart-card">
             <h4>AQI по районах</h4>
             <div class="bars" id="aqiBars"></div>
           </div>
+
           <div class="card chart-card">
             <h4>Температура по районах</h4>
             <div class="bars" id="tempBars"></div>
+          </div>
+
+          <div class="card chart-card">
+            <h4>PM2.5 по районах</h4>
+            <div class="bars" id="pmBars"></div>
+          </div>
+
+          <div class="card chart-card">
+            <h4>Шум по районах</h4>
+            <div class="bars" id="noiseBars"></div>
           </div>
         </div>
       </div>
@@ -1132,8 +1179,13 @@
       document.getElementById("loadedBar").style.width = `${ready.length / districts.length * 100}%`;
 
       const best = [...districts].filter(d => d.aqi != null).sort((a,b) => a.aqi - b.aqi)[0];
+      const worst = [...districts].filter(d => d.aqi != null).sort((a,b) => b.aqi - a.aqi)[0];
       const loud = [...districts].sort((a,b) => b.noise - a.noise)[0];
       const green = [...districts].sort((a,b) => b.green - a.green)[0];
+      const worstPm = [...districts].filter(d => d.pm25 != null).sort((a,b) => b.pm25 - a.pm25)[0];
+
+      const avgNoise = Math.round(districts.reduce((s,d) => s + d.noise, 0) / districts.length);
+      const avgGreen = Math.round(districts.reduce((s,d) => s + d.green, 0) / districts.length);
 
       document.getElementById("bestDistrict").textContent = best ? best.name : "—";
       document.getElementById("bestDistrictMeta").textContent = best ? `AQI: ${best.aqi}` : "Очікування даних";
@@ -1141,6 +1193,13 @@
       document.getElementById("loudDistrictMeta").textContent = `${loud.noise} dB`;
       document.getElementById("greenDistrict").textContent = green.name;
       document.getElementById("greenDistrictMeta").textContent = `${green.green}% озеленення`;
+
+      document.getElementById("avgNoise").textContent = `${avgNoise} dB`;
+      document.getElementById("avgGreen").textContent = `${avgGreen}%`;
+      document.getElementById("worstDistrict").textContent = worst ? worst.name : "—";
+      document.getElementById("worstDistrictMeta").textContent = worst ? `AQI: ${worst.aqi}` : "Очікування даних";
+      document.getElementById("worstPmDistrict").textContent = worstPm ? worstPm.name : "—";
+      document.getElementById("worstPmDistrictMeta").textContent = worstPm ? `PM2.5: ${worstPm.pm25}` : "Очікування даних";
 
       const favourite = localStorage.getItem("ecoFavouriteDistrict");
       document.getElementById("favDistrictLabel").textContent = favourite || "Не обрано";
@@ -1150,6 +1209,8 @@
     function renderBars(){
       const aqiBars = document.getElementById("aqiBars");
       const tempBars = document.getElementById("tempBars");
+      const pmBars = document.getElementById("pmBars");
+      const noiseBars = document.getElementById("noiseBars");
 
       aqiBars.innerHTML = districts.map(district => {
         const value = district.aqi ?? 0;
@@ -1174,6 +1235,36 @@
             <div class="bar-track">
               <div class="bar-fill" style="height:${normalized}%">
                 <span>${district.temp ?? "—"}${district.temp != null ? "°" : ""}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      pmBars.innerHTML = districts.map(district => {
+        const value = district.pm25 ?? 0;
+        const normalized = Math.min(value * 4, 100);
+        return `
+          <div class="bar-item">
+            <small>${shortName(district.name)}</small>
+            <div class="bar-track">
+              <div class="bar-fill" style="height:${normalized}%">
+                <span>${district.pm25 ?? "—"}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      noiseBars.innerHTML = districts.map(district => {
+        const value = district.noise ?? 0;
+        const normalized = Math.min(value, 100);
+        return `
+          <div class="bar-item">
+            <small>${shortName(district.name)}</small>
+            <div class="bar-track">
+              <div class="bar-fill" style="height:${normalized}%">
+                <span>${district.noise}</span>
               </div>
             </div>
           </div>
